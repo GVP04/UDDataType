@@ -706,6 +706,103 @@ DWORD CUniDigital::MUL(PUNIDIGITAL in_pUD_Result, const PUNIDIGITAL in_pUD_1, co
 {
 	DWORD ret = 0;
 
+	if (in_pUD_Result && in_pUD_1 && in_pUD_2)
+	{
+		if (!(in_pUD_1->ReHeader.Flags_Precission & UD_WHEADER_DEFINED))
+			SetRealValue(in_pUD_Result, in_pUD_1);
+		else if (!(in_pUD_2->ReHeader.Flags_Precission & UD_WHEADER_DEFINED))
+			SetRealValue(in_pUD_Result, in_pUD_2);
+		else if ((in_pUD_1->ReHeader.Flags_Precission & UD_WHEADER_UNKNOWN))
+			SetRealValue(in_pUD_Result, in_pUD_1);
+		else if ((in_pUD_2->ReHeader.Flags_Precission & UD_WHEADER_UNKNOWN))
+			SetRealValue(in_pUD_Result, in_pUD_2);
+		else if ((in_pUD_1->ReHeader.Flags_Precission & UD_WHEADER_INFINITY) || (in_pUD_2->ReHeader.Flags_Precission & UD_WHEADER_INFINITY))
+		{
+			if ((in_pUD_1->ReHeader.Flags_Precission & UD_WHEADER_INFINITY) && (in_pUD_2->ReHeader.Flags_Precission & UD_WHEADER_INFINITY))
+			{
+				if (((in_pUD_1->ReHeader.Flags_Precission ^ in_pUD_2->ReHeader.Flags_Precission) & UD_WHEADER_SIGN_OF_BASE))
+				{ // разные знаки аргументов
+					SetRealValue(in_pUD_Result, in_pUD_1);
+					in_pUD_Result->ReHeader.Flags_Precission = (in_pUD_Result->ReHeader.Flags_Precission & (UD_WHEADER_UNKNOWN ^ 0xFFFFFFFF));
+				}
+				else
+				{ //одинаковые знаки аргументов. Ќеопределенное значение
+					SetRealValue(in_pUD_Result, in_pUD_1);
+					in_pUD_Result->ReHeader.Flags_Precission = (in_pUD_Result->ReHeader.Flags_Precission & (UD_WHEADER_SIGN_OF_BASE ^ 0xFFFFFFFF)) | (in_pUD_1->ReHeader.Flags_Precission & UD_WHEADER_SIGN_OF_BASE);
+				}
+			}
+			else
+				if ((in_pUD_1->ReHeader.Flags_Precission & UD_WHEADER_INFINITY))
+					SetRealValue(in_pUD_Result, in_pUD_1);
+				else
+					SetRealValue(in_pUD_Result, in_pUD_2);
+		}
+		else
+		{
+			if (((in_pUD_1->ReHeader.Flags_Precission ^ in_pUD_2->ReHeader.Flags_Precission) & UD_WHEADER_SIGN_OF_BASE))
+			{ // разные знаки слагаемых
+				if ((in_pUD_1->ReHeader.Flags_Precission & UD_WHEADER_SIGN_OF_BASE))
+					ret = SUBUNSIGNED(in_pUD_Result, in_pUD_2, in_pUD_1, UD_OPERATIONS_FLAG_REAL);
+				else
+					ret = SUBUNSIGNED(in_pUD_Result, in_pUD_1, in_pUD_2, UD_OPERATIONS_FLAG_REAL);
+			}
+			else
+			{ //одинаковые знаки слагаемых
+				ret = ADDUNSIGNED(in_pUD_Result, in_pUD_1, in_pUD_2, UD_OPERATIONS_FLAG_REAL);
+				in_pUD_Result->ReHeader.Flags_Precission = (in_pUD_Result->ReHeader.Flags_Precission & (UD_WHEADER_SIGN_OF_BASE ^ 0xFFFFFFFF)) | (in_pUD_1->ReHeader.Flags_Precission & UD_WHEADER_SIGN_OF_BASE);
+			}
+		}
+		//дл€ комплексной части
+		if (!(in_pUD_1->ImHeader.Flags_Precission & UD_WHEADER_DEFINED) && !(in_pUD_2->ImHeader.Flags_Precission & UD_WHEADER_DEFINED))
+			SetComplexValue(in_pUD_Result, in_pUD_1);
+		else
+			if (!(in_pUD_1->ImHeader.Flags_Precission & UD_WHEADER_DEFINED))
+				SetComplexValue(in_pUD_Result, in_pUD_2);
+			else if (!(in_pUD_2->ImHeader.Flags_Precission & UD_WHEADER_DEFINED))
+				SetComplexValue(in_pUD_Result, in_pUD_1);
+			else if ((in_pUD_1->ImHeader.Flags_Precission & UD_WHEADER_UNKNOWN))
+				SetComplexValue(in_pUD_Result, in_pUD_1);
+			else if ((in_pUD_2->ImHeader.Flags_Precission & UD_WHEADER_UNKNOWN))
+				SetComplexValue(in_pUD_Result, in_pUD_2);
+			else if ((in_pUD_1->ImHeader.Flags_Precission & UD_WHEADER_INFINITY) || (in_pUD_2->ImHeader.Flags_Precission & UD_WHEADER_INFINITY))
+			{
+				if ((in_pUD_1->ImHeader.Flags_Precission & UD_WHEADER_INFINITY) && (in_pUD_2->ImHeader.Flags_Precission & UD_WHEADER_INFINITY))
+				{
+					if (((in_pUD_1->ImHeader.Flags_Precission ^ in_pUD_2->ImHeader.Flags_Precission) & UD_WHEADER_SIGN_OF_BASE))
+					{ // разные знаки аргументов
+						SetComplexValue(in_pUD_Result, in_pUD_1);
+						in_pUD_Result->ImHeader.Flags_Precission = (in_pUD_Result->ImHeader.Flags_Precission & (UD_WHEADER_UNKNOWN ^ 0xFFFFFFFF));
+					}
+					else
+					{ //одинаковые знаки аргументов. Ќеопределенное значение
+						SetComplexValue(in_pUD_Result, in_pUD_1);
+						in_pUD_Result->ImHeader.Flags_Precission = (in_pUD_Result->ImHeader.Flags_Precission & (UD_WHEADER_SIGN_OF_BASE ^ 0xFFFFFFFF)) | (in_pUD_1->ImHeader.Flags_Precission & UD_WHEADER_SIGN_OF_BASE);
+					}
+				}
+				else
+					if ((in_pUD_1->ImHeader.Flags_Precission & UD_WHEADER_INFINITY))
+						SetComplexValue(in_pUD_Result, in_pUD_1);
+					else
+						SetComplexValue(in_pUD_Result, in_pUD_2);
+			}
+			else
+			{
+				if (((in_pUD_1->ImHeader.Flags_Precission ^ in_pUD_2->ImHeader.Flags_Precission) & UD_WHEADER_SIGN_OF_BASE))
+				{ // разные знаки слагаемых
+					if ((in_pUD_1->ImHeader.Flags_Precission & UD_WHEADER_SIGN_OF_BASE))
+						ret = SUBUNSIGNED(in_pUD_Result, in_pUD_2, in_pUD_1, UD_OPERATIONS_FLAG_COMPLEX);
+					else
+						ret = SUBUNSIGNED(in_pUD_Result, in_pUD_1, in_pUD_2, UD_OPERATIONS_FLAG_COMPLEX);
+				}
+				else
+				{ //одинаковые знаки слагаемых
+					ret = ADDUNSIGNED(in_pUD_Result, in_pUD_1, in_pUD_2, UD_OPERATIONS_FLAG_COMPLEX);
+					in_pUD_Result->ImHeader.Flags_Precission = (in_pUD_Result->ImHeader.Flags_Precission & (UD_WHEADER_SIGN_OF_BASE ^ 0xFFFFFFFF)) | (in_pUD_1->ImHeader.Flags_Precission & UD_WHEADER_SIGN_OF_BASE);
+				}
+			}
+	}
+
+	
 	return ret;
 }
 DWORD CUniDigital::DIV(PUNIDIGITAL in_pUD_Result, const PUNIDIGITAL in_pUD_1, const PUNIDIGITAL in_pUD_2)
@@ -861,147 +958,111 @@ DWORD CUniDigital::InitUD(PUNIDIGITAL in_pUD, DWORD in_RePrecission, DWORD in_Im
 }
 
 
-#define UD_CMP_RESULT_RE_LESS			0x00000001	//ћеньше
-#define UD_CMP_RESULT_RE_GREATER		0x00000002	//больше
-#define UD_CMP_RESULT_RE_EQUAL			0x00000003	//–авны
-#define UD_CMP_RESULT_RE_MASK			0x00000007	
-#define UD_CMP_RESULT_RE_CLOSE_LE		0x00000010	//Ѕлизко меньше
-#define UD_CMP_RESULT_RE_CLOSE_GR		0x00000020	//Ѕлизко больше
-#define UD_CMP_RESULT_RE_CLOSE_EQ		0x00000030	//Ѕлизко равны
-#define UD_CMP_RESULT_RE_CLOSE_MASK		0x00000070	
-
-#define UD_CMP_RESULT_IM_LESS			0x00000100	//ћеньше
-#define UD_CMP_RESULT_IM_GREATER		0x00000200	//больше
-#define UD_CMP_RESULT_IM_EQUAL			0x00000300	//–авны
-#define UD_CMP_RESULT_IM_MASK			0x00000700	
-#define UD_CMP_RESULT_IM_CLOSE_LE		0x00001000	//Ѕлизко меньше
-#define UD_CMP_RESULT_IM_CLOSE_GR		0x00002000	//Ѕлизко больше
-#define UD_CMP_RESULT_IM_CLOSE_EQ		0x00003000	//Ѕлизко равны
-#define UD_CMP_RESULT_IM_CLOSE_MASK		0x00007000	
-
-#define UD_CMP_RESULT_MASK				0x0000FFFF	//ќпределено
-#define UD_CMP_RESULT_UNDEF_MASK		0xFFFF0000	//Ќеопределено
-
-#define UD_CMP_RESULT_UNDEF_LEFT		0x10000000 //не определен или не инициализирован левый (первый) операнд
-#define UD_CMP_RESULT_UNDEF_RIGHT		0x20000000 //не определен или не инициализирован правый (второй) операнд
-
-#define UD_CMP_RESULT_RE_UNDEF			0x00010000	//Ќе инициализироано
-#define UD_CMP_RESULT_RE_INF			0x00020000	// бесконечность
-#define UD_CMP_RESULT_RE_UNDEF_MASK		0x000F0000	
-
-#define UD_CMP_RESULT_IM_UNDEF			0x00100000	//Ќе инициализироано
-#define UD_CMP_RESULT_IM_INF			0x00200000	// бесконечность
-#define UD_CMP_RESULT_IM_UNDEF_MASK		0x00F00000	
-
-
 DWORD CUniDigital::CmpValueUnsigned(const PUNIDIGITAL in_pUD_1, const PUNIDIGITAL in_pUD_2, DWORD in_Flags)
 {
-	//все что определено знаком обрабатываетс€ выше
+	//все что определено знаком и степенью обрабатываетс€ выше. «десь один знак и степень
 	int ret = 0;
 
-	if (!in_pUD_1) ret |= UD_CMP_RESULT_UNDEF_LEFT;
-	if (!in_pUD_2) ret |= UD_CMP_RESULT_UNDEF_RIGHT;
+	if (!in_pUD_1) { ret |= UD_CMP_RESULT_UNDEF_LEFT; CUniDigital::udLastOperationFlags = UD_LOFLAG_INVALID_DATA; }
+	if (!in_pUD_2) { ret |= UD_CMP_RESULT_UNDEF_RIGHT; CUniDigital::udLastOperationFlags = UD_LOFLAG_INVALID_DATA; }
 
 	if (!ret)
 	{
-		if (!(in_pUD_1->ReHeader.Flags_Precission & UD_WHEADER_DEFINED)) ret |= UD_CMP_RESULT_UNDEF_LEFT;
-		if (!(in_pUD_2->ReHeader.Flags_Precission & UD_WHEADER_DEFINED)) ret |= UD_CMP_RESULT_UNDEF_RIGHT;
+		if (!(in_pUD_1->ReHeader.Flags_Precission & UD_WHEADER_DEFINED)) { ret |= UD_CMP_RESULT_UNDEF_RE_LEFT; CUniDigital::udLastOperationFlags = UD_LOFLAG_INVALID_DATA; }
+		if (!(in_pUD_2->ReHeader.Flags_Precission & UD_WHEADER_DEFINED)) { ret |= UD_CMP_RESULT_UNDEF_RE_RIGHT; CUniDigital::udLastOperationFlags = UD_LOFLAG_INVALID_DATA; }
 
-		if (!ret && (in_Flags & UD_OPERATIONS_FLAG_COMPLEX))
+		if (!ret)
 		{
-			if (!(in_pUD_1->ImHeader.Flags_Precission & UD_WHEADER_DEFINED)) ret |= UD_CMP_RESULT_UNDEF_LEFT;
-			if (!(in_pUD_2->ImHeader.Flags_Precission & UD_WHEADER_DEFINED)) ret |= UD_CMP_RESULT_UNDEF_RIGHT;
-
-			if (!ret)
+			if ((in_Flags & UD_OPERATIONS_FLAG_COMPLEX))
 			{
-				//infinity first
-				if ((in_pUD_1->ImHeader.Flags_Precission & UD_WHEADER_INFINITY))
+				if (!(in_pUD_1->ImHeader.Flags_Precission & UD_WHEADER_DEFINED)) ret |= UD_CMP_RESULT_UNDEF_IM_LEFT;
+				if (!(in_pUD_2->ImHeader.Flags_Precission & UD_WHEADER_DEFINED)) ret |= UD_CMP_RESULT_UNDEF_IM_RIGHT;
+
+				if (!ret)
 				{
-					if ((in_pUD_2->ImHeader.Flags_Precission & UD_WHEADER_INFINITY)) ret |= UD_CMP_RESULT_IM_INF;
-					else ret |= UD_CMP_RESULT_IM_GREATER;
-				}
-				else
-					if ((in_pUD_2->ImHeader.Flags_Precission & UD_WHEADER_INFINITY)) ret |= UD_CMP_RESULT_IM_LESS;
-					else //not infinity
+					//infinity first
+					if ((in_pUD_1->ImHeader.Flags_Precission & UD_WHEADER_INFINITY))
 					{
-						//Exponent first
-						if (in_pUD_1->ImHeader.Exponent < in_pUD_2->ImHeader.Exponent) ret |= UD_CMP_RESULT_IM_LESS;
-						else
-							if (in_pUD_1->ImHeader.Exponent > in_pUD_2->ImHeader.Exponent) ret |= UD_CMP_RESULT_IM_GREATER;
+						if ((in_pUD_2->ImHeader.Flags_Precission & UD_WHEADER_INFINITY)) ret |= UD_CMP_RESULT_RSL_IM_INF;
+						else ret |= UD_CMP_RESULT_IM_GREATER;
+					}
+					else
+						if ((in_pUD_2->ImHeader.Flags_Precission & UD_WHEADER_INFINITY)) ret |= UD_CMP_RESULT_IM_LESS;
+						else //not infinity
+						{
+							//Exponent first
+							if (in_pUD_1->ImHeader.Exponent < in_pUD_2->ImHeader.Exponent) ret |= UD_CMP_RESULT_IM_LESS;
 							else
-							{
-								DWORD* pValue1 = in_pUD_1->Value + UD_PrecissionLenght_DWORD[(in_pUD_1->ReHeader.Flags_Precission & UD_WHEADER_PRECISSION)] - 1;
-								DWORD* pValue2 = in_pUD_2->Value + UD_PrecissionLenght_DWORD[(in_pUD_2->ReHeader.Flags_Precission & UD_WHEADER_PRECISSION)] - 1;
-
-								int realPrec1 = UD_PrecissionLenght_DWORD[(in_pUD_1->ImHeader.Flags_Precission & UD_WHEADER_PRECISSION)] - 1;
-								int realPrec2 = UD_PrecissionLenght_DWORD[(in_pUD_2->ImHeader.Flags_Precission & UD_WHEADER_PRECISSION)] - 1;
-								int idx = 0;
-
-								while (idx < realPrec1 && idx < realPrec2 && pValue1[idx] == pValue2[idx]) idx++;
-
-								if (idx < realPrec1 && idx < realPrec2) // !=
-								{
-									if (pValue1[idx] > pValue2[idx]) ret |= UD_CMP_RESULT_IM_GREATER;
-									else ret |= UD_CMP_RESULT_IM_LESS;
-								}
+								if (in_pUD_1->ImHeader.Exponent > in_pUD_2->ImHeader.Exponent) ret |= UD_CMP_RESULT_IM_GREATER;
 								else
 								{
-									// == или очень близко
-									ret |= UD_CMP_RESULT_IM_EQUAL;
+									DWORD* pValue1 = in_pUD_1->Value + UD_PrecissionLenght_DWORD[(in_pUD_1->ReHeader.Flags_Precission & UD_WHEADER_PRECISSION)] - 1;
+									DWORD* pValue2 = in_pUD_2->Value + UD_PrecissionLenght_DWORD[(in_pUD_2->ReHeader.Flags_Precission & UD_WHEADER_PRECISSION)] - 1;
 
-									if (idx > realPrec1 && idx > realPrec2)
+									int realPrec1 = UD_PrecissionLenght_DWORD[(in_pUD_1->ImHeader.Flags_Precission & UD_WHEADER_PRECISSION)] - 1;
+									int realPrec2 = UD_PrecissionLenght_DWORD[(in_pUD_2->ImHeader.Flags_Precission & UD_WHEADER_PRECISSION)] - 1;
+									int idx = 0;
+
+									while (idx < realPrec1 && idx < realPrec2 && pValue1[idx] == pValue2[idx]) idx++;
+
+									if (idx < realPrec1 && idx < realPrec2) // !=
 									{
-										if ((in_pUD_1->ReHeader.Flags_Precission & UD_WHEADER_LIMIT_HI))
-										{
-											if ((in_pUD_2->ReHeader.Flags_Precission & UD_WHEADER_LIMIT_HI)) ret |= UD_CMP_RESULT_IM_CLOSE_EQ;
-											else
-												if ((in_pUD_2->ReHeader.Flags_Precission & UD_WHEADER_LIMIT_LOW)) ret |= UD_CMP_RESULT_IM_CLOSE_GR;
-										}
-										else
-											if ((in_pUD_1->ReHeader.Flags_Precission & UD_WHEADER_LIMIT_LOW))
-											{
-												if ((in_pUD_2->ReHeader.Flags_Precission & UD_WHEADER_LIMIT_HI)) ret |= UD_CMP_RESULT_IM_CLOSE_LE;
-												else
-													if ((in_pUD_2->ReHeader.Flags_Precission & UD_WHEADER_LIMIT_LOW)) ret |= UD_CMP_RESULT_IM_CLOSE_EQ;
-											}
-											else
-											{
-												if ((in_pUD_2->ReHeader.Flags_Precission & UD_WHEADER_LIMIT_HI)) ret |= UD_CMP_RESULT_IM_CLOSE_GR;
-												else
-													if ((in_pUD_2->ReHeader.Flags_Precission & UD_WHEADER_LIMIT_LOW)) ret |= UD_CMP_RESULT_IM_CLOSE_LE;
-											}
+										if (pValue1[idx] > pValue2[idx]) ret |= UD_CMP_RESULT_IM_GREATER;
+										else ret |= UD_CMP_RESULT_IM_LESS;
 									}
 									else
 									{
-										if (idx < realPrec1)
-										{
-											while (idx < realPrec1 && pValue1[idx] == 0) idx++;
+										// == или очень близко
+										ret |= UD_CMP_RESULT_IM_EQUAL;
 
-											if (idx < realPrec1) ret |= UD_CMP_RESULT_IM_CLOSE_GR;
+										if (idx > realPrec1 && idx > realPrec2)
+										{
+											if ((in_pUD_1->ReHeader.Flags_Precission & UD_WHEADER_LIMIT_HI))
+											{
+												if ((in_pUD_2->ReHeader.Flags_Precission & UD_WHEADER_LIMIT_HI)) ret |= UD_CMP_RESULT_IM_CLOSE_EQ;
+												else
+													if ((in_pUD_2->ReHeader.Flags_Precission & UD_WHEADER_LIMIT_LOW)) ret |= UD_CMP_RESULT_IM_CLOSE_GR;
+											}
+											else
+												if ((in_pUD_1->ReHeader.Flags_Precission & UD_WHEADER_LIMIT_LOW))
+												{
+													if ((in_pUD_2->ReHeader.Flags_Precission & UD_WHEADER_LIMIT_HI)) ret |= UD_CMP_RESULT_IM_CLOSE_LE;
+													else
+														if ((in_pUD_2->ReHeader.Flags_Precission & UD_WHEADER_LIMIT_LOW)) ret |= UD_CMP_RESULT_IM_CLOSE_EQ;
+												}
+												else
+												{
+													if ((in_pUD_2->ReHeader.Flags_Precission & UD_WHEADER_LIMIT_HI)) ret |= UD_CMP_RESULT_IM_CLOSE_GR;
+													else
+														if ((in_pUD_2->ReHeader.Flags_Precission & UD_WHEADER_LIMIT_LOW)) ret |= UD_CMP_RESULT_IM_CLOSE_LE;
+												}
 										}
 										else
 										{
-											while (idx < realPrec2 && pValue2[idx] == 0) idx++;
+											if (idx < realPrec1)
+											{
+												while (idx < realPrec1 && pValue1[idx] == 0) idx++;
 
-											if (idx < realPrec2) ret |= UD_CMP_RESULT_IM_CLOSE_LE;
+												if (idx < realPrec1) ret |= UD_CMP_RESULT_IM_CLOSE_GR;
+											}
+											else
+											{
+												while (idx < realPrec2 && pValue2[idx] == 0) idx++;
+
+												if (idx < realPrec2) ret |= UD_CMP_RESULT_IM_CLOSE_LE;
+											}
 										}
 									}
 								}
-							}
-					}
+						}
+				}
 			}
-		}
-		else
-		{
-			if (!(in_pUD_1->ReHeader.Flags_Precission & UD_WHEADER_DEFINED)) ret |= UD_CMP_RESULT_UNDEF_LEFT;
-			if (!(in_pUD_2->ReHeader.Flags_Precission & UD_WHEADER_DEFINED)) ret |= UD_CMP_RESULT_UNDEF_RIGHT;
-
-			if (!ret)
+			else
 			{
 				//infinity first
 				if ((in_pUD_1->ReHeader.Flags_Precission & UD_WHEADER_INFINITY))
 				{
-					if ((in_pUD_2->ReHeader.Flags_Precission & UD_WHEADER_INFINITY)) ret |= UD_CMP_RESULT_RE_INF;
+					if ((in_pUD_2->ReHeader.Flags_Precission & UD_WHEADER_INFINITY)) ret |= UD_CMP_RESULT_RSL_RE_INF;
 					else ret |= UD_CMP_RESULT_RE_GREATER;
 				}
 				else
@@ -1084,13 +1145,51 @@ DWORD CUniDigital::CmpValueUnsigned(const PUNIDIGITAL in_pUD_1, const PUNIDIGITA
 DWORD CUniDigital::CmpValue(const PUNIDIGITAL in_pUD_1, const PUNIDIGITAL in_pUD_2)
 {
 	DWORD ret = 0;
+	if (!in_pUD_1) { ret |= UD_CMP_RESULT_UNDEF_LEFT; CUniDigital::udLastOperationFlags = UD_LOFLAG_INVALID_DATA; }
+	if (!in_pUD_2) { ret |= UD_CMP_RESULT_UNDEF_RIGHT; CUniDigital::udLastOperationFlags = UD_LOFLAG_INVALID_DATA; }
 
-	return ret;
-}
+	if (!ret)
+	{
+		if (!(in_pUD_1->ReHeader.Flags_Precission & UD_WHEADER_DEFINED)) {ret |= UD_CMP_RESULT_UNDEF_RE_LEFT; CUniDigital::udLastOperationFlags = UD_LOFLAG_INVALID_DATA;}
+		else
+			if (!(in_pUD_1->ImHeader.Flags_Precission & UD_WHEADER_DEFINED)) ret |= UD_CMP_RESULT_UNDEF_IM_LEFT;
 
-DWORD CUniDigital::CmpValue(const PUNIDIGITAL in_pUD_1, const PUNIDIGITAL in_pUD_2, DWORD in_Flags)
-{
-	DWORD ret = 0;
+		if (!(in_pUD_2->ReHeader.Flags_Precission & UD_WHEADER_DEFINED)) { ret |= UD_CMP_RESULT_UNDEF_RE_RIGHT; CUniDigital::udLastOperationFlags = UD_LOFLAG_INVALID_DATA;	}
+		else
+			if (!(in_pUD_2->ImHeader.Flags_Precission & UD_WHEADER_DEFINED)) ret |= UD_CMP_RESULT_UNDEF_IM_RIGHT;
+
+
+		if (!(ret & UD_CMP_RESULT_UNDEF_RE_MASK))
+		{
+			if (((in_pUD_1->ReHeader.Flags_Precission ^ in_pUD_2->ReHeader.Flags_Precission) & UD_WHEADER_SIGN_OF_BASE)) //разные знаки
+			{
+				if ((in_pUD_1->ReHeader.Flags_Precission & UD_WHEADER_SIGN_OF_BASE))  ret += UD_CMP_RESULT_RE_LESS;
+				else ret += UD_CMP_RESULT_RE_GREATER;
+			}
+			else
+				if (in_pUD_1->ReHeader.Exponent > in_pUD_2->ReHeader.Exponent)  ret += UD_CMP_RESULT_RE_GREATER;
+				else
+					if (in_pUD_1->ReHeader.Exponent < in_pUD_2->ReHeader.Exponent)  ret += UD_CMP_RESULT_RE_LESS;
+					else
+						ret += CmpValueUnsigned(in_pUD_1, in_pUD_2, UD_OPERATIONS_FLAG_REAL);
+
+			//Complex
+			if (!(ret & UD_CMP_RESULT_UNDEF_IM_MASK))
+			{
+				if (((in_pUD_1->ImHeader.Flags_Precission ^ in_pUD_2->ImHeader.Flags_Precission) & UD_WHEADER_SIGN_OF_BASE)) //разные знаки
+				{
+					if ((in_pUD_1->ImHeader.Flags_Precission & UD_WHEADER_SIGN_OF_BASE))  ret += UD_CMP_RESULT_IM_LESS;
+					else ret += UD_CMP_RESULT_RE_GREATER;
+				}
+				else
+					if (in_pUD_1->ImHeader.Exponent > in_pUD_2->ImHeader.Exponent)  ret += UD_CMP_RESULT_IM_GREATER;
+					else
+						if (in_pUD_1->ImHeader.Exponent < in_pUD_2->ImHeader.Exponent)  ret += UD_CMP_RESULT_IM_LESS;
+						else
+							ret += CmpValueUnsigned(in_pUD_1, in_pUD_2, UD_OPERATIONS_FLAG_COMPLEX);
+			}
+		}
+	}
 
 	return ret;
 }

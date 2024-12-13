@@ -35,37 +35,45 @@ typedef unsigned long DWORD;
 #define UD_OPERATIONS_FLAG_COMPLEX				0x02	//Операция с комплексной частью
 
 /////////////////// Compare results
-#define UD_CMP_RESULT_RE_LESS			0x00000001	//Меньше
-#define UD_CMP_RESULT_RE_GREATER		0x00000002	//больше
-#define UD_CMP_RESULT_RE_EQUAL			0x00000003	//Равны
-#define UD_CMP_RESULT_RE_MASK			0x00000007	
-#define UD_CMP_RESULT_RE_CLOSE_LE		0x00000010	//Близко меньше
-#define UD_CMP_RESULT_RE_CLOSE_GR		0x00000020	//Близко больше
-#define UD_CMP_RESULT_RE_CLOSE_EQ		0x00000030	//Близко равны
-#define UD_CMP_RESULT_RE_CLOSE_MASK		0x00000070	
+#define UD_CMP_RESULT_RE_LESS				0x00000001	//Меньше
+#define UD_CMP_RESULT_RE_GREATER			0x00000002	//больше
+#define UD_CMP_RESULT_RE_EQUAL				0x00000003	//Равны
+#define UD_CMP_RESULT_RE_MASK				0x00000007	
+#define UD_CMP_RESULT_RE_CLOSE_LE			0x00000010	//Близко меньше
+#define UD_CMP_RESULT_RE_CLOSE_GR			0x00000020	//Близко больше
+#define UD_CMP_RESULT_RE_CLOSE_EQ			0x00000030	//Близко равны
+#define UD_CMP_RESULT_RE_CLOSE_MASK			0x00000070	
 
-#define UD_CMP_RESULT_IM_LESS			0x00000100	//Меньше
-#define UD_CMP_RESULT_IM_GREATER		0x00000200	//больше
-#define UD_CMP_RESULT_IM_EQUAL			0x00000300	//Равны
-#define UD_CMP_RESULT_IM_MASK			0x00000700	
-#define UD_CMP_RESULT_IM_CLOSE_LE		0x00001000	//Близко меньше
-#define UD_CMP_RESULT_IM_CLOSE_GR		0x00002000	//Близко больше
-#define UD_CMP_RESULT_IM_CLOSE_EQ		0x00003000	//Близко равны
-#define UD_CMP_RESULT_IM_CLOSE_MASK		0x00007000	
+#define UD_CMP_RESULT_IM_LESS				0x00000100	//Меньше
+#define UD_CMP_RESULT_IM_GREATER			0x00000200	//больше
+#define UD_CMP_RESULT_IM_EQUAL				0x00000300	//Равны
+#define UD_CMP_RESULT_IM_MASK				0x00000700	
+#define UD_CMP_RESULT_IM_CLOSE_LE			0x00001000	//Близко меньше
+#define UD_CMP_RESULT_IM_CLOSE_GR			0x00002000	//Близко больше
+#define UD_CMP_RESULT_IM_CLOSE_EQ			0x00003000	//Близко равны
+#define UD_CMP_RESULT_IM_CLOSE_MASK			0x00007000	
 
-#define UD_CMP_RESULT_MASK				0x0000FFFF	//Определено
-#define UD_CMP_RESULT_UNDEF_MASK		0xFFFF0000	//Неопределено
+#define UD_CMP_RESULT_MASK					0x0000FFFF	//Результат сравнения
+#define UD_CMP_RESULT_UNDEF_MASK			0xFFFF0000	//Неопределено или неоднозначно
 
-#define UD_CMP_RESULT_UNDEF_LEFT		0x10000000 //не определен или не инициализирован левый (первый) операнд
-#define UD_CMP_RESULT_UNDEF_RIGHT		0x20000000 //не определен или не инициализирован правый (второй) операнд
+#define UD_CMP_RESULT_UNDEF_LEFT			0x10000000 //не определен или не инициализирован левый (первый) операнд
+#define UD_CMP_RESULT_UNDEF_RIGHT			0x20000000 //не определен или не инициализирован правый (второй) операнд
+#define UD_CMP_RESULT_UNDEF_PARAM_MASK		0xF0000000	//
 
-#define UD_CMP_RESULT_RE_UNDEF			0x00010000	//Не инициализироано
-#define UD_CMP_RESULT_RE_INF			0x00020000	// бесконечность
-#define UD_CMP_RESULT_RE_UNDEF_MASK		0x000F0000	
+#define UD_CMP_RESULT_UNDEF_RE_LEFT			0x01000000 //не определена или не инициализирована реальная часть
+#define UD_CMP_RESULT_UNDEF_RE_RIGHT		0x02000000 //не определена или не инициализирована реальная часть
+#define UD_CMP_RESULT_UNDEF_RE_MASK			0x0F000000 //
+#define UD_CMP_RESULT_UNDEF_IM_LEFT			0x00100000 //не определена или не инициализирована комплексная часть
+#define UD_CMP_RESULT_UNDEF_IM_RIGHT		0x00100000 //не определена или не инициализирована комплексная часть
+#define UD_CMP_RESULT_UNDEF_IM_MASK			0x00F00000 //
 
-#define UD_CMP_RESULT_IM_UNDEF			0x00100000	//Не инициализироано
-#define UD_CMP_RESULT_IM_INF			0x00200000	// бесконечность
-#define UD_CMP_RESULT_IM_UNDEF_MASK		0x00F00000	
+#define UD_CMP_RESULT_RSL_RE_UNDEF			0x00010000	//Неопределеный результат
+#define UD_CMP_RESULT_RSL_RE_INF			0x00020000	// бесконечность
+#define UD_CMP_RESULT_RSL_RE_UNDEF_MASK		0x000F0000	
+
+#define UD_CMP_RESULT_RSL_IM_UNDEF			0x00100000	//Неопределеный результат
+#define UD_CMP_RESULT_RSL_IM_INF			0x00200000	// бесконечность
+#define UD_CMP_RESULT_RSL_IM_UNDEF_MASK		0x00F00000	
 
 
 
@@ -185,8 +193,9 @@ private:
 	PUNIDIGITAL m_Slave;
 	PUNIDIGITAL m_Temp;
 	static DWORD udLastOperationFlags;
-	//знак слагаемых не влияет на операцию. Операция сложения по модулю
+
 public:
+	//знак слагаемых не влияет на операцию. Операция сложения по модулю
 	DWORD ADDUNSIGNED(PUNIDIGITAL in_pUD_Result, const PUNIDIGITAL in_pUD_1, const PUNIDIGITAL in_pUD_2, DWORD in_Flags);
 	DWORD ADD_LL(PUNIDIGITAL_HEADER pUD_ResultH, DWORD* pdwResult, const PUNIDIGITAL_HEADER pUD_H, const DWORD* pdwUD);
 
@@ -211,7 +220,6 @@ public:
 	DWORD SetComplexValue(PUNIDIGITAL in_pUD_Result, const PUNIDIGITAL in_pUD_Src);
 
 	DWORD CmpValue(const PUNIDIGITAL in_pUD_1, const PUNIDIGITAL in_pUD_2);
-	DWORD CmpValue(const PUNIDIGITAL in_pUD_1, const PUNIDIGITAL in_pUD_2, DWORD in_Flags);
 	DWORD CmpValueUnsigned(const PUNIDIGITAL in_pUD_1, const PUNIDIGITAL in_pUD_2, DWORD in_Flags);
 
 	static DWORD GetLenght(const PUNIDIGITAL in_pUD);

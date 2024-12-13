@@ -18,5 +18,31 @@
     <ClCompile Include="UDDataType.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="UniDigital.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BFP08.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BFP16.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BFP32.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="UniDigital.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BFP08.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BFP16.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BFP32.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
