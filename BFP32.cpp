@@ -602,32 +602,63 @@ double CBFP32::ToDouble(const BFP32 &in_pUD)
 	return *((double*)&ret);
 }
 
-long double CBFP32::ToLongDouble(const BFP32 &in_pUD)
+long double CBFP32::ToLongDouble(const BFP32& in_pUD)
 {
-	unsigned __int64 ret[2];
+	unsigned __int64 ret[2] = { 0, 0};
 
-	ret[0] = ((__int64)in_pUD.Mantissa[2]);
-	ret[1] = (((__int64)in_pUD.Mantissa[1]) << BFP32_MANTISSA_MOVE_1) + in_pUD.Mantissa[0];
-
-	__int64 newExp = ((in_pUD.SEF & BFP32_WHEADER_EXP_VALUE_MASK) - 0x40) * 0x20 + 0x34;
-
-	while ((ret[0] || ret[1]) && !(ret[0] & 0x0010000000000000))
+	if ((in_pUD.SEF & BFP32_WHEADER_EXP_VALUE_MASK) == BFP32_WHEADER_INFINITY) ret[0] = 0x7ff0000000000000;
+	else if ((in_pUD.SEF & BFP32_WHEADER_EXP_VALUE_MASK) == BFP32_WHEADER_SOMETHIG) ret[0] = 0; ///реализация чего-либо
+	else if ((in_pUD.SEF & BFP32_WHEADER_EXP_VALUE_MASK) == BFP32_WHEADER_CLOSE_TO_0) ret[0] = 0x7fffffffffffffff;
+	else if ((in_pUD.SEF & BFP32_WHEADER_EXP_VALUE_MASK) == BFP32_WHEADER_UNKNOWN) ret[0] = 0x7ff0000000000000; //не нашел в double аналог
+	else if (!in_pUD.Mantissa[2]) ret[0] = 0; //==0
+	else
 	{
-		ret[0] <<= 0x1;
-		if ((ret[1] & 0x8000000000000000))
-			ret[0]++;
+		ret[0] = ((__int64)in_pUD.Mantissa[2]) << 20;
+		int nMove = 20;
 
-		newExp--;
-		ret[1] <<= 0x1;
+		if ((!(ret[0] & 0xFFFFFF0000000000)))
+		{
+			nMove += 12;
+			ret[0] <<= 12;
+		}
+
+		if ((!(ret[0] & 0xFFFF000000000000)))
+		{
+			nMove += 4;
+			ret[0] <<= 4;
+		}
+
+		if ((!(ret[0] & 0x0010000000000000)))
+		{
+			nMove++;
+			ret[0] <<= 1;
+		}
+
+		if (nMove == 32)
+		{
+			ret[0] += ((__int64)in_pUD.Mantissa[1]);
+			ret[1] = (((__int64)in_pUD.Mantissa[0]) << 32);
+		}
+		else if (nMove > 32)
+		{
+			ret[0] += (((__int64)in_pUD.Mantissa[1]) << (nMove - 32)) + (((__int64)in_pUD.Mantissa[0]) >> (64 - nMove));
+			ret[1] = (((__int64)in_pUD.Mantissa[0]) << (64 - nMove));
+		}
+		else
+		{
+			ret[0] += (((__int64)in_pUD.Mantissa[1]) >> (32 - nMove));
+			ret[1] = (((__int64)in_pUD.Mantissa[1]) << (32 + nMove)) + (((__int64)in_pUD.Mantissa[0]) << (64 - nMove));
+		}
+
+		__int64 newExp = ((in_pUD.SEF & BFP32_WHEADER_EXP_VALUE_MASK) - 0x40) * 0x20 - nMove + 0x34;
+
+		ret[0] &= 0x000FFFFFFFFFFFFF;
+
+		ret[0] |= (((newExp + 0x3FF) << 52) & 0x7FF0000000000000);
 	}
 
-
-	ret[0] &= 0x000FFFFFFFFFFFFF;
-
-	ret[0] |= (((newExp + 0x3FF) << 52) & 0x7FF0000000000000);
-
 	if (!(in_pUD.SEF & BFP32_WHEADER_SIGN_OF_BASE))		ret[0] |= 0x8000000000000000; //знак числа
-	
+
 	return *((long double*)ret);
 }
 

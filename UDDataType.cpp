@@ -19,10 +19,7 @@ void CheckToFromDouble()
     double ggggLast = 1.0;
     int max_I = 1000000;
 
-    //BFP08 CBFP08_1_last;
-
-	std::cout << "BFP08 \n";
-	for (int k = 0; k < 3; k++)
+    for (int k = 0; k < 3; k++)
 	{
         int i, j;
 
@@ -92,8 +89,63 @@ void CheckToFromDouble()
 			if (i == max_I)	std::cout << "j=" << j << "\t" << " i=" << i << "\t" << " Ok" << "\n";
 		}
 	}
+}
 
- 
+void CheckToFromLongDouble()
+{
+    //test in out double
+    long double gg_mul[4] = { 0.999 ,-0.999 ,1.001 ,-1.001 };
+    long double gg_ini[4] = { 1.0 ,-1.0 ,1.0 ,-1.0 , };
+    long double gggg = 1.0;
+    long double ggggLast = 1.0;
+    int max_I = 1000000;
+        int i, j;
+
+		for (j = 0; j < 4; j++)
+		{
+			gggg = gg_ini[j];
+            double dRes = gggg;
+            double dResLast;
+			BFP32 CBFP32_1 = BFP32(gggg);
+
+			for (i = 1; i < max_I; i++)
+			{
+                dResLast = dRes;
+				CBFP32_1 = BFP32(gggg);
+				dRes = CBFP32::ToDouble(CBFP32_1);
+
+				if (gggg > 0)
+				{
+					if (gggg < dRes / 1.0001)     i += max_I;
+					if (gggg > dRes * 1.0001)     i += max_I;
+				}
+				else
+				{
+					if (gggg > dRes / 1.0001)     i += max_I;
+					if (gggg < dRes * 1.0001)     i += max_I;
+				}
+				if (i >= max_I)
+				{
+					char tmps[5000];
+					sprintf_s(tmps, 5000, "%15.15g", gggg);
+					std::cout << "j=" << j << "\t" << " i=" << i - max_I << "\t" << " gggg=" << tmps << "\t";
+					sprintf_s(tmps, 5000, "%15.15g", dRes);
+					std::cout << " dRes=" << tmps << "\t";
+                    sprintf_s(tmps, 5000, "%15.15g", ggggLast);
+                    std::cout << " ggggLast=" << tmps << "\t";
+                    sprintf_s(tmps, 5000, "%15.15g", dResLast);
+                    std::cout << " dResLast=" << tmps << "\n";
+                    i++;
+				}
+                else
+                {
+				    ggggLast = gggg;
+				    gggg *= gg_mul[j];
+                }
+			}
+			if (i == max_I)	std::cout << "j=" << j << "\t" << " i=" << i << "\t" << " Ok" << "\n";
+		}
+
 }
  
 int main()
@@ -114,7 +166,8 @@ int main()
     CUniDigital::InitUD(Result, 2, 0);
 
 
-    CheckToFromDouble();
+    //CheckToFromDouble();
+    CheckToFromLongDouble();
  
 
     double d1 = 1.0;

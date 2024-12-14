@@ -129,31 +129,70 @@ typedef struct BFP32
 		//проверку на переполнение
 
 		if (!(i_inValue & 0x8000000000000000)) tmpSEF |= BFP32_WHEADER_SIGN_OF_BASE_POSITIVE;
-		else
-		{
-			tmpSEF |= BFP32_WHEADER_SIGN_OF_BASE_NEGATIVE ;
-		}
 
 		int scrExp = exp & 0x1F;
 		if (scrExp)
 		{
-			Mantissa[2] = (unsigned int)(mant >> (BFP32_MANTISSA_MOVE_1 + 20  - scrExp));
+			Mantissa[2] = (unsigned int)(mant >> (52 - scrExp));
 			if (scrExp > 20)
 			{
-				Mantissa[1] = (unsigned int)(mant << ( scrExp - 20));
+				Mantissa[1] = (unsigned int)(mant << (scrExp - 20));
 				Mantissa[0] = 0;
 			}
 			else
 			{
 				Mantissa[1] = (unsigned int)(mant >> (20 - scrExp));
-				Mantissa[0] = (unsigned int)(mant <<  12 + scrExp);
+				Mantissa[0] = (unsigned int)(mant << (12 + scrExp));
 			}
 		}
 		else
 		{
-			Mantissa[2] = (unsigned int)(mant >> (BFP32_MANTISSA_MOVE_1 + 20 ));
+			Mantissa[2] = (unsigned int)(mant >> 52);
 			Mantissa[1] = (unsigned int)(mant >> 20 );
-			Mantissa[0] = (unsigned int)mant << 12;
+			Mantissa[0] = (unsigned int)(mant << 12);
+		}
+		SEF = tmpSEF;
+	}
+
+	BFP32(long double inValue)
+	{
+		__int64 *i_inValue = (__int64*)(&inValue);
+
+
+		__int64 mant = (i_inValue[0] & 0x000FFFFFFFFFFFFF) | 0x0010000000000000;
+		__int64 exp = ((i_inValue[0] >> 52) & 0x7FF) - 0x3FF;
+
+		unsigned short tmpSEF;
+
+		if (exp >= 0)
+			tmpSEF = (exp >> 5) + BFP32_WHEADER_SIGN_OF_EXP_POSITIVE;
+		else
+			tmpSEF = BFP32_WHEADER_SIGN_OF_EXP_POSITIVE - ((-exp - 1) >> 5) - 1;
+
+		//проверку на переполнение
+
+		if (!(i_inValue[0] & 0x8000000000000000)) tmpSEF |= BFP32_WHEADER_SIGN_OF_BASE_POSITIVE;
+
+		int scrExp = exp & 0x1F;
+		if (scrExp)
+		{
+			Mantissa[2] = (unsigned int)(mant >> (52 - scrExp));
+			if (scrExp > 20)
+			{
+				Mantissa[1] = (unsigned int)(mant << (scrExp - 20)) + (unsigned int)(i_inValue[1] >> (84 - scrExp));
+				Mantissa[0] = (unsigned int)(i_inValue[1] >> (116 - scrExp));
+			}
+			else
+			{
+				Mantissa[1] = (unsigned int)(mant >> (20 - scrExp));
+				Mantissa[0] = (unsigned int)(mant << (12 + scrExp)) + (unsigned int)(i_inValue[1] >> (20));
+			}
+		}
+		else
+		{
+			Mantissa[2] = (unsigned int)(mant >> 52);
+			Mantissa[1] = (unsigned int)(mant >> 20);
+			Mantissa[0] = (unsigned int)(mant << 12) + (unsigned int)(i_inValue[1] >> 52);
 		}
 		SEF = tmpSEF;
 	}
